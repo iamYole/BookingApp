@@ -7,8 +7,9 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/iamYole/BookingApp/pkg/config"
-	"github.com/iamYole/BookingApp/pkg/models"
+	"github.com/iamYole/BookingApp/internal/config"
+	"github.com/iamYole/BookingApp/internal/models"
+	"github.com/justinas/nosurf"
 )
 
 // var tc = make(map[string]*template.Template)
@@ -18,12 +19,13 @@ func NewTemplate(a *config.AppConfig) {
 	app = a
 }
 
-func AddDefaultData(td *models.TemplateData) *models.TemplateData {
+func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateData {
+	td.CSRFToken = nosurf.Token(r)
 	return td
 }
 
 // RenderTemplate renders the HTML templates
-func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
+func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *models.TemplateData) {
 
 	var tc map[string]*template.Template
 	//get the template cache from the app config
@@ -39,7 +41,7 @@ func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData)
 		log.Fatal("Could not get template from template cache")
 	}
 
-	td = AddDefaultData(td)
+	td = AddDefaultData(td, r)
 
 	buf := new(bytes.Buffer)
 	_ = t.Execute(buf, td)
